@@ -336,3 +336,45 @@ badsig:
 
   return -1;
 }
+
+int crypto_sign_derive(uint8_t *pk, const uint8_t *sk) {
+  uint8_t seedbuf[2*SEEDBYTES + CRHBYTES];
+  uint8_t tr[TRBYTES];
+  const uint8_t *rho, *rhoprime, *key;
+  polyvecl mat[K];
+  polyvecl s1, s1hat;
+  polyveck s2, t1, t0;
+
+  rho = seedbuf;
+  rhoprime = rho + SEEDBYTES;
+  key = rhoprime + CRHBYTES;
+
+  unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
+
+  /* Expand matrix */
+  polyvec_matrix_expand(mat, rho);
+
+  /* Sample short vectors s1 and s2 */
+
+  /* Matrix-vector multiplication */
+  s1hat = s1;
+  polyvecl_ntt(&s1hat);
+  polyvec_matrix_pointwise_montgomery(&t1, mat, &s1hat);
+  polyveck_reduce(&t1);
+  polyveck_invntt_tomont(&t1);
+
+  /* Add error vector s2 */
+  polyveck_add(&t1, &t1, &s2);
+
+  /* Extract t1 and write public key */
+  polyveck_caddq(&t1);
+  polyveck_power2round(&t1, &t0, &t1);
+  pack_pk(pk, rho, &t1);
+  
+
+  return 0;
+}
+
+int crypto_sign_cryptobytes(){
+  return CRYPTO_BYTES;
+}

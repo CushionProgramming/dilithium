@@ -33,4 +33,10 @@ int crypto_sign_open(uint8_t *m, size_t *mlen,
                      const uint8_t *sm, size_t smlen,
                      const uint8_t *pk);
 
+#define crypto_sign_derive DILITHIUM_NAMESPACE(derive)
+int crypto_sign_derive(uint8_t *pk, const uint8_t *sk);
+
+#define crypto_sign_cryptobytes DILITHIUM_NAMESPACE(cryptobytes)
+int crypto_sign_cryptobytes();
+
 #endif
